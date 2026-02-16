@@ -3,83 +3,38 @@
 <head>
     <title>Awais Private Gallery</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #111;
-            color: white;
-            text-align: center;
-        }
-
-        #loginBox {
-            margin-top: 150px;
-        }
-
-        input {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            margin: 5px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: none;
-            background: red;
-            color: white;
-            cursor: pointer;
-        }
-
-        #gallery {
-            display: none;
-            padding: 20px;
-        }
-
-        img, video {
-            width: 300px;
-            margin: 15px;
-            border-radius: 10px;
-        }
-
-        h1 {
-            color: red;
-        }
+        body {background:#111;color:white;text-align:center;font-family:Arial;}
+        #gallery {display:none;}
+        img,video{width:300px;margin:10px;border-radius:10px;}
+        input{padding:8px;}
+        button{padding:8px 15px;background:red;color:white;border:none;}
     </style>
 </head>
 <body>
 
-<div id="loginBox">
-    <h1>Enter Password</h1>
-    <input type="password" id="password" placeholder="Enter Password">
-    <br>
-    <button onclick="checkPassword()">Login</button>
-</div>
+<h2>Enter Password</h2>
+<input type="password" id="password">
+<button onclick="check()">Login</button>
 
 <div id="gallery">
-    <h1>Welcome To My Private Gallery</h1>
-
-    <h2>Pictures</h2>
+    <h1>Welcome Awais</h1>
     <img src="image1.jpg">
-    <img src="image2.jpg">
-
-    <h2>Videos</h2>
     <video controls>
         <source src="video1.mp4" type="video/mp4">
     </video>
 </div>
 
 <script>
-    function checkPassword() {
-        var pass = document.getElementById("password").value;
+function check(){
+    var correctPassword = "786";   // 🔐 Yahan password change karo
+    var entered = document.getElementById("password").value;
 
-        if(pass === "awaiskhan12345@") {   // Yahan apna password change kar sakte ho
-            document.getElementById("loginBox").style.display = "none";
-            document.getElementById("gallery").style.display = "block";
-        } else {
-            alert("Wrong Password!");
-        }
+    if(entered == correctPassword){
+        document.getElementById("gallery").style.display="block";
+    } else {
+        alert("Wrong Password");
     }
+}
 </script>
 
 </body>
