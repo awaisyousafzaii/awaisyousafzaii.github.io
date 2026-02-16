@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Private Upload - Public Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Login Page Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-container h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .login-container .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .login-container input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .login-container input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .login-container button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .login-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .error-message {
+            color: #f56565;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        /* Main App Styles */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: none;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .header h1 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+        
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header .user-info span {
+            color: #666;
+        }
+        
+        .logout-btn {
+            padding: 8px 20px;
+            background: #f56565;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #e53e3e;
+        }
+        
+        /* Admin Upload Section - Sirf Aapko Dikhega */
+        .admin-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: 3px solid #667eea;
+            position: relative;
+        }
+        
+        .admin-section::before {
+            content: '🔒 Private Upload - Sirf Aap Dekh Sakte Ho';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .admin-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f7fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+        
+        .upload-area i {
+            font-size: 50px;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .preview-item img, .preview-item video {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .preview-item .filename {
+            padding: 5px;
+            background: white;
+            font-size: 12px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .upload-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+        
+        /* Public Gallery Section - Sab Dekhenge */
+        .gallery-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .gallery-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .gallery-section h2 i {
+            color: #667eea;
+        }
+        
+        .gallery-stats {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stats {
+            color: #4a5568;
+        }
+        
+        .stats span {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .share-link {
+            background: #48bb78;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .gallery-item {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .gallery-item img, .gallery-item video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .gallery-item .info {
+            padding: 10px;
+            background: white;
+        }
+        
+        .gallery-item .info .filename {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .gallery-item .info .date {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* Modal for viewing */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .modal-content img, .modal-content video {
+            width: 100%;
+            height: auto;
+            max-height: 90vh;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 50px 20px;
+                padding: 30px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <h1>🔒 Private Upload</h1>
+        <div class="subtitle">Sirf owner upload kar sakta hai</div>
+        <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="handleKeyPress(event)">
+        <button onclick="checkPassword()">Login as Owner</button>
+        <div class="error-message" id="errorMessage">Wrong password!</div>
+    </div>
+    
+    <!-- Main App (Hidden by default) -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <i>📸</i> 
+                <span id="pageTitle">Public Gallery</span>
+            </h1>
+            <div class="user-info">
+                <span id="userStatus">👤 Guest</span>
+                <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Admin Upload Section (Sirf Owner ko dikhega) -->
+        <div class="admin-section" id="adminSection" style="display: none;">
+            <h2>📤 Private Upload</h2>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <i>📁</i>
+                <p>Click karein ya drag & drop karein</p>
+                <small>Images aur videos allowed hain (Max: 50MB)</small>
+            </div>
+            
+            <input type="file" id="fileInput" multiple accept="image/*,video/*">
+            
+            <div class="preview-container" id="previewContainer"></div>
+            
+            <button class="upload-btn" id="uploadBtn" disabled onclick="uploadFiles()">Upload Files</button>
+        </div>
+        
+        <!-- Public Gallery Section (Sab dekhenge) -->
+        <div class="gallery-section">
+            <h2>
+                <i>🖼️</i>
+                Public Gallery
+            </h2>
+            
+            <div class="gallery-stats">
+                <div class="stats">
+                    Total <span id="totalFiles">0</span> photos & videos
+                </div>
+                <a href="#" class="share-link" onclick="copyGalleryLink()">
+                    📋 Copy Gallery Link
+                </a>
+            </div>
+            
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Gallery items will appear here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for viewing -->
+    <div class="modal" id="modal" onclick="closeModal()">
+        <span class="close-modal">&times;</span>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+    
+    <script>
+        // Password - YAHI APNA PASSWORD SET KARO
+        const OWNER_PASSWORD = "awaiskhan1234@";  // <-- ISKO BADAL KAR APNA PASSWORD RAKHO
+        
+        let isOwner = false;
+        let selectedFiles = [];
+        let uploadedFiles = [];
+        
+        // Load saved files on startup
+        function loadFiles() {
+            const saved = localStorage.getItem('galleryFiles');
+            if (saved) {
+                uploadedFiles = JSON.parse(saved);
+                updateGallery();
+                updateStats();
+            }
+        }
+        
+        // Save files
+        function saveFiles() {
+            localStorage.setItem('galleryFiles', JSON.stringify(uploadedFiles));
+            updateGallery();
+            updateStats();
+        }
+        
+        // Update gallery
+        function updateGallery() {
+            const gallery = document.getElementById('galleryGrid');
+            if (uploadedFiles.length === 0) {
+                gallery.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1/-1;">No files uploaded yet</p>';
+                return;
+            }
+            
+            gallery.innerHTML = '';
+            [...uploadedFiles].reverse().forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.onclick = () => openModal(file.data, file.type);
+                
+                const displayName = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
+                
+                if (file.type.startsWith('image/')) {
+                    item.innerHTML = `
+                        <img src="${file.data}" alt="${file.name}">
+                        <div class="info">
+                            <div class="filename">${displayName}</div>
+                            <div class="date">${file.uploadDate}</div>
+                        </div>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <video src="${file.data}"></video>
+                        <div class="info">
+                            <div class="filename">${displayName}</div>
+                            <div class="date">${file.uploadDate}</div>
+                        </div>
+                    `;
+                }
+                
+                gallery.appendChild(item);
+            });
+        }
+        
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalFiles').textContent = uploadedFiles.length;
+        }
+        
+        // Check password
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === OWNER_PASSWORD) {
+                isOwner = true;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('adminSection').style.display = 'block';
+                document.getElementById('userStatus').textContent = '👑 Owner';
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('pageTitle').textContent = 'Owner Dashboard';
+            } else {
+                // Guest access - sirf dekh sakte hain
+                isOwner = false;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('adminSection').style.display = 'none';
+                document.getElementById('userStatus').textContent = '👤 Guest (View Only)';
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('pageTitle').textContent = 'Public Gallery';
+            }
+        }
+        
+        // Handle enter key
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        }
+        
+        // Logout
+        function logout() {
+            isOwner = false;
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('passwordInput').value = '';
+        }
+        
+        // File selection
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            if (!isOwner) return;
+            selectedFiles = Array.from(e.target.files);
+            updatePreview();
+            document.getElementById('uploadBtn').disabled = selectedFiles.length === 0;
+        });
+        
+        // Update preview
+        function updatePreview() {
+            const preview = document.getElementById('previewContainer');
+            preview.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                
+                reader.onload = (e) => {
+                    if (file.type.startsWith('image/')) {
+                        item.innerHTML = `
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <div class="filename">${file.name.substring(0, 20)}</div>
+                        `;
+                    } else {
+                        item.innerHTML = `
+                            <video src="${e.target.result}"></video>
+                            <div class="filename">${file.name.substring(0, 20)}</div>
+                        `;
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+                preview.appendChild(item);
+            });
+        }
+        
+        // Upload files
+        function uploadFiles() {
+            if (!isOwner || selectedFiles.length === 0) return;
+            
+            let uploaded = 0;
+            
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const fileData = {
+                        id: Date.now() + index,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: e.target.result,
+                        uploadDate: new Date().toLocaleString()
+                    };
