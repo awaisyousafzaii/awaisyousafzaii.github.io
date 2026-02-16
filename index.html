@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mera Upload Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .upload-area {
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f0f0;
+        }
+        
+        .upload-area i {
+            font-size: 50px;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .upload-area p {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .upload-area small {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .preview h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        #previewContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 10px;
+        }
+        
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .preview-item img, .preview-item video {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .preview-item .file-info {
+            padding: 8px;
+            background: white;
+            font-size: 12px;
+            color: #333;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 25px;
+            text-align: center;
+            transition: background 0.3s;
+            display: none;
+        }
+        
+        .preview-item:hover .delete-btn {
+            display: block;
+        }
+        
+        .delete-btn:hover {
+            background: #ff3333;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #uploadBtn {
+            background: #667eea;
+            color: white;
+        }
+        
+        #uploadBtn:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        #clearBtn {
+            background: #f56565;
+            color: white;
+        }
+        
+        #clearBtn:hover:not(:disabled) {
+            background: #e53e3e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .links-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .links-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        #linksContainer {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .link-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .link-item:last-child {
+            border-bottom: none;
+        }
+        
+        .link-item a {
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        
+        .link-item a:hover {
+            text-decoration: underline;
+        }
+        
+        .copy-link {
+            background: #48bb78;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            margin-left: 10px;
+        }
+        
+        .copy-link:hover {
+            background: #38a169;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Mera Upload Website</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">Apni photos aur videos yahan upload karein</p>
+        
+        <!-- Upload Area -->
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <i>📁</i>
+            <p>Click karein ya drag & drop karein</p>
+            <small>Images aur videos allowed hain (Max: 50MB)</small>
+        </div>
+        
+        <input type="file" id="fileInput" multiple accept="image/*,video/*">
+        
+        <!-- Preview Section -->
+        <div class="preview">
+            <h3>Selected Files</h3>
+            <div id="previewContainer"></div>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="btn-group">
+            <button id="uploadBtn" disabled>Upload Files</button>
+            <button id="clearBtn" disabled>Clear All</button>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <!-- Uploaded Links Section -->
+        <div class="links-section">
+            <h3>Uploaded Files Links</h3>
+            <div id="linksContainer">
+                <p style="color: #999; text-align: center;">Koi file upload nahi hui</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Variables
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const linksContainer = document.getElementById('linksContainer');
+        
+        let selectedFiles = [];
+        let uploadedFiles = [];
+        
+        // Load saved files from localStorage
+        function loadSavedFiles() {
+            const saved = localStorage.getItem('uploadedFiles');
+            if (saved) {
+                uploadedFiles = JSON.parse(saved);
+                updateLinksSection();
+            }
+        }
+        
+        // Save files to localStorage
+        function saveFiles() {
+            localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+            updateLinksSection();
+        }
+        
+        // File select handler
+        fileInput.addEventListener('change', (e) => {
+            selectedFiles = Array.from(e.target.files);
+            updatePreview();
+            updateButtons();
+        });
+        
+        // Drag and drop
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#667eea';
+            uploadArea.style.background = '#f0f0f0';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccc';
+            uploadArea.style.background = '#f9f9f9';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            uploadArea.style.background = '#f9f9f9';
+            
+            const files = Array.from(e.dataTransfer.files);
+            const validFiles = files.filter(file => 
+                file.type.startsWith('image/') || file.type.startsWith('video/')
+            );
+            
+            if (validFiles.length > 0) {
+                selectedFiles = validFiles;
+                fileInput.files = e.dataTransfer.files;
+                updatePreview();
+                updateButtons();
+            } else {
+                alert('Sirf images aur videos allowed hain!');
+            }
+        });
+        
+        // Preview update
+        function updatePreview() {
+            previewContainer.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                
+                reader.onload = (e) => {
+                    if (file.type.startsWith('image/')) {
+                        previewItem.innerHTML = `
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <div class="file-info">
+                                ${file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name}
+                            </div>
+                            <button class="delete-btn" onclick="removeFile(${index})">×</button>
+                        `;
+                    } else if (file.type.startsWith('video/')) {
+                        previewItem.innerHTML = `
+                            <video src="${e.target.result}"></video>
+                            <div class="file-info">
+                                ${file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name}
+                            </div>
+                            <button class="delete-btn" onclick="removeFile(${index})">×</button>
+                        `;
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+                previewContainer.appendChild(previewItem);
+            });
+            
+            if (selectedFiles.length === 0) {
+                previewContainer.innerHTML = '<p style="color: #999; text-align: center;">Koi file select nahi hui</p>';
+            }
+        }
+        
+        // Remove file
+        window.removeFile = (index) => {
+            selectedFiles.splice(index, 1);
+            
+            // Update file input
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+            
+            updatePreview();
+            updateButtons();
+        };
+        
+        // Update buttons state
+        function updateButtons() {
+            uploadBtn.disabled = selectedFiles.length === 0;
+            clearBtn.disabled = selectedFiles.length === 0;
+        }
+        
+        // Clear all
+        clearBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            fileInput.value = '';
+            updatePreview();
+            updateButtons();
+        });
+        
+        // Upload function (Base64 encoding)
+        function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            progressBar.style.display = 'block';
+            uploadBtn.disabled = true;
+            clearBtn.disabled = true;
+            
+            let uploaded = 0;
+            
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    // Create file data object
+                    const fileData = {
+                        id: Date.now() + index,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: e.target.result,
+                        url: e.target.result, // Data URL
+                        uploadDate: new Date().toLocaleString()
+                    };
+                    
+                    uploadedFiles.push(fileData);
+                    uploaded++;
+                    
+                    // Update progress
+                    const percent = (uploaded / selectedFiles.length) * 100;
+                    progress.style.width = percent + '%';
+                    
+                    // Check if all files uploaded
+                    if (uploaded === selectedFiles.length) {
+                        saveFiles();
+                        
+                        setTimeout(() => {
+                            progressBar.style.display = 'none';
+                            progress.style.width = '0%';
+                            
+                            // Clear selected files
+                            selectedFiles = [];
+                            fileInput.value = '';
+                            updatePreview();
+                            updateButtons();
+                            
+                            alert('Sab files upload ho gayi!');
+                        }, 500);
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Update links section
+        function updateLinksSection() {
+            if (uploadedFiles.length === 0) {
+                linksContainer.innerHTML = '<p style="color: #999; text-align: center;">Koi file upload nahi hui</p>';
+                return;
+            }
+            
+            linksContainer.innerHTML = '';
+            
+            // Show last 10 files (reverse order - latest first)
+            [...uploadedFiles].reverse().slice(0, 10).forEach(file => {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                
+                // Create display name
+                const displayName = file.name.length > 30 ? 
+                    file.name.substring(0, 30) + '...' : 
+                    file.name;
+                
+                linkItem.innerHTML = `
+                    <div style="flex: 1;">
+                        <a href="${file.url}" target="_blank" title="${file.name}">
+                            ${displayName}
+                        </a>
+                        <small style="display: block; color: #999;">
+                            ${file.uploadDate} (${(file.size / 1024).toFixed(1)} KB)
+                        </small>
+                    </div>
+                    <button class="copy-link" onclick="copyToClipboard('${file.url}')">
+                        Copy
+                    </button>
+                `;
+                
+                linksContainer.appendChild(linkItem);
+            });
+            
+            if (uploadedFiles.length > 10) {
+                const more = document.createElement('p');
+                more.style.textAlign = 'center';
+                more.style.color = '#999';
+                more.style.marginTop = '10px';
+                more.textContent = `... aur ${uploadedFiles.length - 10} aur files`;
+                linksContainer.appendChild(more);
+            }
+        }
+        
+        // Copy to clipboard
+        window.copyToClipboard = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Link copy ho gaya!');
+            });
+        };
+        
+        // Upload button click
+        uploadBtn.addEventListener('click', uploadFiles);
+        
+        // Clear all files button (optional)
+        function clearAllFiles() {
+            if (confirm('Kya aap sab files delete karna chahte hain?')) {
+                uploadedFiles = [];
+                saveFiles();
+            }
+        }
+        
+        // Load saved files on page load
+        loadSavedFiles();
+    </script>
+</body>
+</html>
