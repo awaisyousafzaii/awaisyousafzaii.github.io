@@ -1,157 +1,279 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Private Upload</title>
+    <title>Photo Upload</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea, #764ba2);
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
         }
+        
         .container {
-            max-width: 500px;
-            margin: 50px auto;
+            max-width: 600px;
+            margin: 30px auto;
             background: white;
+            border-radius: 15px;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
+        
         h2 {
             text-align: center;
             color: #333;
+            margin-bottom: 20px;
         }
-        input, button {
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        input[type="password"] {
             width: 100%;
             padding: 12px;
-            margin: 8px 0;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 16px;
-            box-sizing: border-box;
         }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+        
         button {
-            background: #667eea;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: transform 0.2s;
         }
+        
         button:hover {
-            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
         }
-        .error {
-            color: red;
-            text-align: center;
-            display: none;
-        }
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .gallery img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
+        
         .logout-btn {
             background: #f56565;
-            margin-top: 20px;
         }
+        
         .logout-btn:hover {
             background: #e53e3e;
         }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        
+        .gallery img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .error {
+            color: #f56565;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        
         .hidden {
+            display: none;
+        }
+        
+        .status {
+            text-align: center;
+            color: #48bb78;
+            margin: 10px 0;
             display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Login Section -->
-    <div id="loginSection" class="container">
+    <!-- Login Container -->
+    <div id="loginContainer" class="container">
         <h2>🔒 Private Upload</h2>
-        <p style="text-align: center;">Only owner can upload</p>
-        <input type="password" id="password" placeholder="Enter password">
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">Sirf owner upload kar sakta hai</p>
+        
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Password likhein" onkeypress="handleEnter(event)">
+        </div>
+        
         <button onclick="login()">Login</button>
-        <div id="errorMsg" class="error">Wrong password! Try again.</div>
+        
+        <div id="loginError" class="error">❌ Password galat hai!</div>
     </div>
 
-    <!-- Upload Section (Hidden by default) -->
-    <div id="uploadSection" class="container hidden">
-        <h2>📤 Upload Files</h2>
-        <input type="file" id="fileInput" multiple accept="image/*">
-        <button onclick="uploadFiles()">Upload</button>
+    <!-- Upload Container (Hidden by default) -->
+    <div id="uploadContainer" class="container hidden">
+        <h2>📸 Photos Upload Karein</h2>
         
-        <div id="preview" class="gallery"></div>
+        <div class="form-group">
+            <input type="file" id="fileInput" accept="image/*" multiple>
+        </div>
+        
+        <button onclick="uploadPhotos()">Upload Photos</button>
+        
+        <div id="uploadStatus" class="status">✅ Upload ho gaya!</div>
+        
+        <div class="gallery" id="gallery"></div>
         
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <script>
-        // 🔑 APNA PASSWORD YAHAN SET KARO
-        const OWNER_PASSWORD = "awaiskhan1234@";
+        // 🔑 APNA PASSWORD YAHAN SET KAREIN
+        const PASSWORD = "admin123";
         
-        let uploadedFiles = JSON.parse(localStorage.getItem('myFiles') || '[]');
-
+        // Storage key
+        const STORAGE_KEY = 'my_uploaded_photos';
+        
+        // Load saved photos
+        let photos = [];
+        
+        function loadPhotos() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                photos = JSON.parse(saved);
+                displayPhotos();
+            }
+        }
+        
+        // Display photos in gallery
+        function displayPhotos() {
+            const gallery = document.getElementById('gallery');
+            if (!gallery) return;
+            
+            if (photos.length === 0) {
+                gallery.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1/-1;">Abhi koi photo nahi hai</p>';
+                return;
+            }
+            
+            gallery.innerHTML = '';
+            photos.forEach(photo => {
+                const img = document.createElement('img');
+                img.src = photo;
+                img.alt = 'Uploaded photo';
+                gallery.appendChild(img);
+            });
+        }
+        
         // Login function
         function login() {
-            const pass = document.getElementById('password').value;
-            if (pass === OWNER_PASSWORD) {
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('uploadSection').classList.remove('hidden');
-                showGallery();
+            const enteredPassword = document.getElementById('password').value;
+            
+            if (enteredPassword === PASSWORD) {
+                document.getElementById('loginContainer').classList.add('hidden');
+                document.getElementById('uploadContainer').classList.remove('hidden');
+                document.getElementById('loginError').style.display = 'none';
+                loadPhotos();
             } else {
-                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('loginError').style.display = 'block';
                 setTimeout(() => {
-                    document.getElementById('errorMsg').style.display = 'none';
+                    document.getElementById('loginError').style.display = 'none';
                 }, 2000);
             }
         }
-
+        
+        // Handle enter key
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        }
+        
         // Logout function
         function logout() {
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('uploadContainer').classList.add('hidden');
             document.getElementById('password').value = '';
         }
-
-        // Show gallery
-        function showGallery() {
-            const preview = document.getElementById('preview');
-            preview.innerHTML = '';
+        
+        // Upload photos function - YAHAN SE UPLOAD HOGA
+        function uploadPhotos() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
             
-            uploadedFiles.forEach(file => {
-                const img = document.createElement('img');
-                img.src = file;
-                preview.appendChild(img);
-            });
-        }
-
-        // Upload files
-        function uploadFiles() {
-            const files = document.getElementById('fileInput').files;
+            if (files.length === 0) {
+                alert('Pehle photo select karein!');
+                return;
+            }
+            
+            let uploadedCount = 0;
             
             for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Sirf images allow hain
+                if (!file.type.startsWith('image/')) {
+                    continue;
+                }
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    uploadedFiles.push(e.target.result);
-                    localStorage.setItem('myFiles', JSON.stringify(uploadedFiles));
-                    showGallery();
+                    // Photo ko array mein add karo
+                    photos.push(e.target.result);
+                    
+                    uploadedCount++;
+                    
+                    // Jab sab upload ho jayein
+                    if (uploadedCount === files.length) {
+                        // Local storage mein save karo
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(photos));
+                        
+                        // Gallery update karo
+                        displayPhotos();
+                        
+                        // Success message dikhao
+                        const status = document.getElementById('uploadStatus');
+                        status.style.display = 'block';
+                        setTimeout(() => {
+                            status.style.display = 'none';
+                        }, 2000);
+                        
+                        // File input clear karo
+                        fileInput.value = '';
+                    }
                 };
                 
-                reader.readAsDataURL(files[i]);
+                reader.readAsDataURL(file);
             }
-            
-            document.getElementById('fileInput').value = '';
         }
-
-        // Check if already logged in? No, always show login first
-        showGallery(); // Gallery dikhegi sirf upload section mein
+        
+        // Initial load
+        loadPhotos();
+        
+        // Agar already logged in hain to? No, always login first
     </script>
 </body>
 </html>
